@@ -22,6 +22,7 @@
 
 #include <gtkmm.h>
 #include <conecto.h>
+#include "notifications-list.h"
 
 namespace App {
 namespace Models {
@@ -35,9 +36,9 @@ class ConnectedDevices : public Gtk::ListStore {
     /**
      * Create a new ConnectedDevices-model using data from the @p Conecto::Backend
      */
-    ~ConnectedDevices () {
-        for (auto& conn : m_connections)
-            conn.disconnect ();
+    ~ConnectedDevices ()
+    {
+        for (auto& conn : m_connections) conn.disconnect ();
     }
 
     /** @brief The device's user-specified name */
@@ -56,36 +57,38 @@ class ConnectedDevices : public Gtk::ListStore {
     Gtk::TreeModelColumn<Glib::ustring> column_host_addr;
     /** @brief The host's port */
     Gtk::TreeModelColumn<uint> column_host_port;
+    /** @brief A notifications-model for the device */
+    Gtk::TreeModelColumn<Glib::RefPtr<NotificationsList>> column_notifications;
 
     /**
      * @brief Find a device in the model
-     * 
+     *
      * This may return an invalid iterator
      */
     Gtk::TreeIter find_device (const std::shared_ptr<Conecto::Device>& device) const;
     /**
      * @brief Find a device in the model
-     * 
+     *
      * This may return an invalid iterator
      */
     Gtk::TreeIter find_device (const std::string& id) const;
     /**
      * @brief Get the connected device for a tree iterator
-     * 
+     *
      * If the iterator is invalid, this will return an empty shared_ptr
      */
     std::shared_ptr<Conecto::Device> get_device (const Gtk::TreeIter& iter) const;
 
     /**
      * @brief Update a device's name
-     * 
+     *
      * @param iter The device iterator
      * @param name The new display name
      */
     void set_device_name (const Gtk::TreeIter& iter, const std::string& name);
     /**
      * @brief Update a starred flag
-     * 
+     *
      * @param iter The device iterator
      * @param name true to make the device starred
      */
@@ -106,6 +109,8 @@ class ConnectedDevices : public Gtk::ListStore {
     Gtk::TreeModel::ColumnRecord               m_columns;
     std::shared_ptr<Conecto::Plugins::Battery> m_battery_plugin;
     std::list<sigc::connection>                m_connections;
+
+    std::map<std::string /* id */, Glib::RefPtr<NotificationsList> /* model */> m_notification_models;
 };
 
 } // namespace Models

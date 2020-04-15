@@ -20,10 +20,12 @@
 
 #include "backend.h"
 #include "crypt.h"
+#include "constants.h"
 #include "exceptions.h"
 #include <glibmm/miscutils.h>
 #include <glibmm/fileutils.h>
 #include <giomm/file.h>
+#include <libnotify/notify.h>
 
 using namespace Conecto;
 
@@ -69,6 +71,14 @@ Backend::Backend ()
 
     // Listen to new devices
     m_discovery.signal_device_found ().connect (sigc::mem_fun (+this, &Backend::on_new_device));
+
+    // Set up notifications
+    notify_init (Constants::APP_ID.c_str ());
+}
+
+Backend::~Backend ()
+{
+    notify_uninit ();
 }
 
 ConfigFile&
@@ -177,9 +187,8 @@ Backend::activate_device (const std::shared_ptr<DeviceEntry>& device)
     g_info ("Activating device %s", device->device->to_string ().c_str ());
 
     if (!device->device->get_is_active ()) {
-        device->paired_conn = device->device->signal_paired ().connect ([this, device] (bool success) {
-            update_cache ();
-        });
+        device->paired_conn =
+                device->device->signal_paired ().connect ([this, device] (bool success) { update_cache (); });
         device->disconnected_conn = device->device->signal_disconnected ().connect ([device] () {
             g_debug ("Device %s got disconnected", device->device->to_string ().c_str ());
 

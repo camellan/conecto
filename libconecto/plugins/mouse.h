@@ -1,4 +1,4 @@
-/* battery.h
+/* mouse.h
  *
  * Copyright 2020 Hannes Schulze <haschu0103@gmail.com>
  *
@@ -23,6 +23,7 @@
 #include "abstract-packet-handler.h"
 #include <map>
 #include <sigc++/sigc++.h>
+#include <gdkmm/display.h>
 
 namespace Conecto {
 
@@ -31,35 +32,18 @@ class NetworkPacket;
 namespace Plugins {
 
 /**
- * @brief Battery level plugin
+ * @brief Mouse plugin
  */
-class Battery : public AbstractPacketHandler {
+class Mouse : public AbstractPacketHandler {
   public:
     /**
      * Create a new instance of this plugin
      */
-    Battery ();
-    ~Battery () {}
+    Mouse ();
+    ~Mouse ();
 
-    /**
-     * Get the last battery level and charging flag for a device
-     */
-    std::tuple<int, bool> get_last_value (const std::shared_ptr<Device>& device) const;
-
-    /**
-     * @param device The device which sent the battery level update
-     * @param level The new battery level [0..100]
-     * @param charging true if the battery is currently charging
-     */
-    using type_signal_battery =
-            sigc::signal<void, const std::shared_ptr<Device>& /* device */, int /* level */, bool /* charging */>;
-    /**
-     * Emitted after receiving a battery level update from a device
-     */
-    type_signal_battery signal_battery () { return m_signal_battery; }
-
-    Battery (const Battery&) = delete;
-    Battery& operator= (const Battery&) = delete;
+    Mouse (const Mouse&) = delete;
+    Mouse& operator= (const Mouse&) = delete;
 
   protected:
     // packet handler
@@ -72,9 +56,9 @@ class Battery : public AbstractPacketHandler {
 
   private:
     std::map<std::shared_ptr<Device>, sigc::connection> m_devices;
-    std::map<std::string, std::tuple<int, bool>>        m_values;
+    Glib::RefPtr<Gdk::Display>                          m_display;
 
-    type_signal_battery m_signal_battery;
+    void send_click (int button, bool doubleclick = false);
 };
 
 } // namespace Plugins

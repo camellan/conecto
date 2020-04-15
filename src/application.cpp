@@ -49,6 +49,9 @@ Application::on_startup ()
 {
     Gtk::Application::on_startup ();
 
+    // Register non-interactive plugins
+    Conecto::Backend::get_instance ().register_plugin (std::make_shared<Conecto::Plugins::Mouse> ());
+
     Conecto::Backend::get_instance ().load_from_cache ();
     Conecto::Backend::get_instance ().listen ();
     ACTIVE_DEVICE.set_models (m_connected_devices, m_unavailable_devices, m_available_devices);
@@ -93,7 +96,7 @@ Application::on_command_line (const Glib::RefPtr<Gio::ApplicationCommandLine>& c
     group.add_entry (open_dev_option, m_open_dev_id);
     context.set_main_group (group);
     context.set_help_enabled (true);
-    int argc;
+    int    argc;
     char** argv = command_line->get_arguments (argc);
     if (!context.parse (argv)) {
         g_error ("Error while trying to parse command line arguments");
